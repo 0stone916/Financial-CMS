@@ -1,11 +1,30 @@
-# 📌 SmartBudget – 개인 예산 관리 웹 서비스
-> **400만 건 대용량 트랜잭션 환경에서 데이터 정합성과 응답 성능을 보장하는 백엔드 설계**
+# SmartBudget: 3-MSA 기반 실시간 결제 관리 시스템
 
-개인별 예산 수립 및 지출 내역을 관리하는 서비스로, 단순 기능 구현을 넘어 **대규모 데이터 조회 성능 최적화**와 **배치 운영 안정성** 확보에 집중하여 개발했습니다.
+단순한 기능 구현을 넘어, 실제 금융 트랜잭션의 흐름을 모사한 **결제-승인-통지** 프로세스를 설계하고 대용량 데이터 환경에서의 안정성을 검증한 프로젝트입니다.
 
 ## 🛠 Tech Stack
 - **Back-end**: Java 17, Spring Boot, Spring Batch 5, Redis, MySQL, MyBatis
-- **Front-end**: React
+- **Front-end**: React, SockJS, STOMP
+- **Infrastructure**: Docker, GitHub
+
+## [아키텍처] 3-MSA 설계
+<img width="711" height="525" alt="Untitled-2026-02-28-1520" src="https://github.com/user-attachments/assets/cb6c382e-2d85-4826-8121-e4f5a384255e" />
+
+## 📌 Project Overview
+
+### **Step 1. [v1] 데이터 본질에 집중한 성능 최적화**
+* **대용량 조회 최적화**: 400만 건 규모의 데이터를 복합 인덱스 및 **No-Offset 전략**으로 관리하여 응답 성능을 20초에서 **22ms**로 개선했습니다.
+* **데이터 무결성 보장**: **Optimistic Lock**을 활용한 동시성 제어와 **Spring Batch 5** 기반의 장애 허용(Fault Tolerance) 및 실패 이력 재처리 아키텍처를 구축했습니다.
+* **세션 및 보안**: Redis 기반의 단일 세션 관리 체계를 구축하여 Stateless 환경에서도 서버의 세션 통제권을 강화했습니다.
+
+### **Step 2. [v2] 시스템 확장성 및 가용성 고도화 (현재 진행중)**
+* **3-MSA 분산 구조 설계**: `Payment-App`(결제) → `Bank`(트랜잭션/Webhook) → `SmartBudget`(알림/분석)으로 이어지는 Event-Driven 구조를 구현했습니다.
+* **동시 결제 처리 안정성 확보**: 다수의 단말기에서 동시에 결제 요청이 집중될 때, 시스템 에러(충돌)로 인한 결제 실패를 방지하기 위해 Redis 기반 분산 락을 도입했습니다.
+* **실시간 가용성 검증**: 웹소켓 차단 환경을 가정하여 **SockJS Fallback** 메커니즘을 구현하여 결제 통지 알림이 누락되지 않음을 실증했습니다.
+
+## 💡 주요 기술적 의사결정
+* **Webhook 메커니즘을 통한 장애 격리**: 은행 시스템과 SmartBudget 간의 통신을 비동기 지향적 Webhook 구조로 설계했습니다. 결제 핵심 로직과 알림 로직을 분리하여, 알림 서버(SmartBudget)의 장애나 지연이 발생하더라도 메인 결제 트랜잭션에는 영향을 주지 않는 느슨한 결합(Loosely Coupled)을 실현했습니다.
+* **스핀 락(Wait & Retry)**: 중복 요청 발생 시 즉시 실패시키는 대신, 잠시 대기 후 처리함으로써 금융 서비스의 핵심인 결제의 완결성을 최우선으로 고려했습니다.
 
 ## 🚀 핵심 기술적 해결 과제 (Engineering Challenge)
 
