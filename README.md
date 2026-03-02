@@ -1,4 +1,4 @@
-# SmartBudget: 3-MSA 기반 실시간 결제 관리 시스템
+# Financial CMS: 3-MSA 기반 실시간 결제 관리 시스템
 
 단순한 기능 구현을 넘어, 실제 금융 트랜잭션의 흐름을 모사한 **결제-승인-통지** 프로세스를 설계하고 대용량 데이터 환경에서의 안정성을 검증한 프로젝트입니다.
 
@@ -8,7 +8,7 @@
 - **Infrastructure**: Docker, GitHub
 
 ## [아키텍처] 3-MSA 설계
-<img width="711" height="525" alt="Untitled-2026-02-28-1520" src="https://github.com/user-attachments/assets/cb6c382e-2d85-4826-8121-e4f5a384255e" />
+<img width="711" height="525" alt="Untitled-2026-02-28-152120" src="https://github.com/user-attachments/assets/2b7188ce-d27d-4a38-afdd-eed94cec0c82" />
 
 ## 📌 Project Overview
 
@@ -77,6 +77,18 @@
     - **커스텀 예외(BusinessException) 설계**: 토큰 만료, 유효성 실패 등 세분화된 예외 상황을 체계적으로 관리하기 위해 자바 표준 상속 구조를 활용한 사용자 정의 예외 계층 구축 
     - **전역 응답 표준화**: `ErrorCode Enum`을 기반으로 프레임워크 예외와 커스텀 예외의 응답 규격을 `ApiResponse`로 단일화하여 프론트엔드 협업 생산성 극대화
 
+### 🚀 Future Work: 시스템 안정성 및 신뢰성 고도화 설계
+
+현재 구조의 가용성을 한 단계 더 높이기 위해 다음과 같은 고도화 방안을 설계하였으며, 순차적으로 적용 예정입니다.
+#### 1. 데이터 유실 제로를 위한 이중 방어 설계
+* **현황**: 실시간 트랜잭션 처리 과정에서 발생할 수 있는 0.1%의 데이터 불일치 가능성 존재.
+* **계획**:
+   * 1차 방어 (Outbox Pattern): 송신측(은행)의 내부 장애(DB 저장 후 발송 전 다운) 상황에서도 메시지 발행을 보장함.
+   * 2차 방어 (Kafka EDA): 수신측(CMS)의 장애 상황에서도 메시지를 유실하지 않고, 복구 후 재처리(Replay)할 수 있는 영속성을 확보함.
+
+#### 3. MSA 장애 격리 강화 (Transactional Outbox Pattern)
+* **현황**: 결제 서비스 다운 시 알림 전송 실패 가능성 존재.
+* **계획**: **Outbox Pattern**을 적용하여 결제 처리와 알림 메시지 발행을 하나의 로컬 트랜잭션으로 묶어, 시스템 장애 발생 시에도 반드시 메시지가 발행되도록 보장하는 구조 적용 예정.
 
 ## 📘 상세 설계 문서 (Portfolio)
 👉 [SmartBudget 노션 상세 페이지](https://www.notion.so/2cc2c24577cc80638969fa8cf6d240d5)
