@@ -7,7 +7,7 @@ import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
-public class RedisTokenService {
+public class RedisService {
 
     private final StringRedisTemplate redisTemplate;
     private static final Duration ACCESS_TOKEN_EXP = Duration.ofMinutes(1);
@@ -41,5 +41,20 @@ public class RedisTokenService {
 
     public void deleteRefreshToken(String userId) {
         redisTemplate.delete(refreshKey(userId));
+    }
+
+        // 락 획득 시도 (30초 동안 유효)
+    public boolean acquireLock(String approvalNo) {
+        String key = "lock:payment:" + approvalNo;
+        // setIfAbsent는 Redis의 SETNX 명령어를 실행합니다 (값이 없을 때만 저장)
+        Boolean success = redisTemplate.opsForValue()
+                .setIfAbsent(key, "locked", Duration.ofSeconds(30));
+        return success != null && success;
+    }
+
+    // 락 해제
+    public void releaseLock(String approvalNo) {
+        String key = "lock:payment:" + approvalNo;
+        redisTemplate.delete(key);
     }
 }

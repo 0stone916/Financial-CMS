@@ -1,6 +1,6 @@
 package com.jys.smartbudget.config;
 
-import com.jys.smartbudget.service.RedisTokenService;
+import com.jys.smartbudget.service.RedisService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,11 +20,11 @@ import java.util.ArrayList;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     // Redis에서 토큰을 조회/저장/삭제하는 서비스
-    private final RedisTokenService redisTokenService;
+    private final RedisService redisTokenService;
 
     private final JwtUtil jwtUtil;
 
-    public JwtAuthFilter(RedisTokenService redisTokenService, JwtUtil jwtUtil ) {
+    public JwtAuthFilter(RedisService redisTokenService, JwtUtil jwtUtil ) {
         this.redisTokenService = redisTokenService;
         this.jwtUtil = jwtUtil;
     }
@@ -57,23 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-            throws ServletException, IOException {
-
-
-
-
-         
-        // 테스트용
-        String testUser = req.getHeader("X-TEST-USER");
-        if (testUser != null) {
-            UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(testUser, null, new ArrayList<>());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            req.setAttribute("userId", testUser);
-
-            chain.doFilter(req, res);
-            return;
-        }        
+            throws ServletException, IOException {     
 
         // 1. HTTP 헤더에서 Authorization 값 가져오기
         // 형식: "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOi..."

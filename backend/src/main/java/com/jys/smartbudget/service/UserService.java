@@ -23,17 +23,11 @@ public class UserService {
 
 
     public UserDTO login(String userId, String password) {
-                  log.info("@!!!!!!!!!!!!!!!!!");
         UserDTO user = userMapper.findByUserId(userId);
-                log.info("@@@@@@@3333@@@");
 
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-                log.info("@@@@@@@444@@@");
-
             return user;
         }
-                log.info("@@@@@@@555@@@");
-
         return null;
     }
 

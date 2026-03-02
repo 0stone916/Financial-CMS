@@ -1,145 +1,62 @@
 package com.jys.smartbudget.controller;
 
 import com.jys.smartbudget.dto.ApiResponse;
+import com.jys.smartbudget.dto.BankAccountDto;
 import com.jys.smartbudget.dto.ExpenseDTO;
 import com.jys.smartbudget.dto.SearchRequest;
 import com.jys.smartbudget.dto.StatisticsDTO;
+import com.jys.smartbudget.exception.BusinessException;
+import com.jys.smartbudget.exception.ErrorCode;
 import com.jys.smartbudget.service.ExpenseService;
 import com.jys.smartbudget.util.DateUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Validated          //@PathVariable이나 @RequestParam에 직접 붙인 제약 조건 사용시 필요
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/expenses")
 public class ExpenseController {
 
-    private final ExpenseService expenseService;
+        private final RestTemplate restTemplate = new RestTemplate();
+        private final ExpenseService expenseService;
 
-    public ExpenseController(ExpenseService expenseService) {
-        this.expenseService = expenseService;
-    }
-
-    @GetMapping("/insert")
-    public String insertData() {
-        expenseService.insertDummyData();
-        return "데이터 삽입 완료!";
-    }
-
-    // 지출 조회
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<ExpenseDTO>>> searchExpenses(
-            HttpServletRequest req,
-            @Valid SearchRequest searchRequest) {
-
-        String userId = (String) req.getAttribute("userId");
-        searchRequest.setUserId(userId);
-
-
-        // ExpenseDTO expense = new ExpenseDTO();
-        // expense.setUserId(userId);
-        // expense.setYear(searchRequest.getYear());
-        // expense.setMonth(searchRequest.getMonth());
-
-        List<ExpenseDTO> result = expenseService.searchExpenses(searchRequest);
-
-
-        return ResponseEntity.ok(
-                ApiResponse.success("지출 조회 성공", result)
-        );
-    }
-
-    // 전체 지출 조회
-    @GetMapping("/getExpenseStatistics")
-    public ResponseEntity<ApiResponse<List<StatisticsDTO>>> getExpenseStatistics(
-            HttpServletRequest req,
-            @Valid SearchRequest searchRequest) {
-
-        String userId = (String) req.getAttribute("userId");
-        searchRequest.setUserId(userId);
-
-
-        // ExpenseDTO expense = new ExpenseDTO();
-        // expense.setUserId(userId);
-        // expense.setYear(searchRequest.getYear());
-        // expense.setMonth(searchRequest.getMonth());
-
-        List<StatisticsDTO> result = expenseService.getExpenseStatistics(searchRequest);
-
-
-        return ResponseEntity.ok(
-                ApiResponse.success("지출 조회 성공", result)
-        );
-    }
-
-    // 지출 등록
-    @PostMapping
-    public ResponseEntity<ApiResponse<Void>> insertExpense(
-            HttpServletRequest req,
-            @Valid @RequestBody ExpenseDTO expense) {
-
-        DateUtils.validateDate(expense.getYear(), expense.getMonth(), expense.getDay());
-
-        String userId = (String) req.getAttribute("userId");
-        expense.setUserId(userId);
-
-        expenseService.insertExpense(expense);
-
-        boolean overBudget = expenseService.checkOverBudget(expense);
-
-        if (overBudget) {
-            return ResponseEntity.ok(
-                ApiResponse.success("해당 예산을 초과했습니다.")
-            );
-        }
-
-        return ResponseEntity.ok(
-                ApiResponse.success("지출 등록 완료")
-        );
-    }
-
-    // 지출 수정
-    @PutMapping
-    public ResponseEntity<ApiResponse<Void>> updateExpense(
-            HttpServletRequest req,
-            @Valid @RequestBody ExpenseDTO expense) {
-
-        DateUtils.validateDate(expense.getYear(), expense.getMonth(), expense.getDay());
+        @PostMapping("/search")
+        public ResponseEntity<ApiResponse<Map<String, Object>>> getExpenseWithBalance(
+                @RequestBody SearchRequest searchRequest,
+                HttpServletRequest req) {
         
         String userId = (String) req.getAttribute("userId");
-        expense.setUserId(userId);
+        searchRequest.setUserId(userId);
 
-        expenseService.updateExpense(expense);
+        // 1. SmartBudget DB에서 지출 내역 조회 (페이징)
+        List<ExpenseDTO> expenses = expenseService.getExpenses(searchRequest);
 
-        return ResponseEntity.ok(
-                ApiResponse.success("지출 수정 완료")
+        BankAccountDto bankAccount = restTemplate.getForObject(
+                "http://localhost:8081/api/v1/payments/accounts?userId=" + userId, 
+                BankAccountDto.class
         );
 
-    }
+        // 3. 결과 합치기
+        Map<String, Object> result = new HashMap<>();
+        result.put("expenses", expenses);
+        result.put("accountInfo", bankAccount); // 현재 잔액 정보
 
-    // 지출 삭제
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteExpense(
-            HttpServletRequest req,
-                @PathVariable @Min(value = 1, message = "유효하지 않은 예산 ID입니다.") Long id) {
-
-
-        String userId = (String) req.getAttribute("userId");
-
-        expenseService.deleteExpense(id, userId);
-
-        return ResponseEntity.ok(
-                ApiResponse.success("지출 삭제 완료")
-        );
-    }
-
-
-
+        return ResponseEntity.ok(ApiResponse.success("내역 조회 성공", result));
+        }
 
 
 

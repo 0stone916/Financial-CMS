@@ -12,6 +12,8 @@ public class SearchRequest {
 
     private String userId;    // 유저
 
+    private String accountNumber;    // 유저
+
     @NotNull(message = "년도는 필수입니다.")
     @Min(value = 2000, message = "년도가 올바르지 않습니다.")
     private Integer year;

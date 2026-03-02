@@ -1,6 +1,9 @@
 package com.jys.smartbudget.mapper;
 
 import com.jys.smartbudget.dto.BudgetDTO;
+import com.jys.smartbudget.dto.ExpenseDTO;
+import com.jys.smartbudget.dto.NotiRequestDto;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -10,7 +13,7 @@ import java.util.List;
 public interface BudgetMapper {
     void insertBudget(BudgetDTO budget);
     List<BudgetDTO> selectBudgetsByConditionWithPaging(BudgetDTO condition);
-    int updateBudget(BudgetDTO budget);
+    int updateBudget(NotiRequestDto expense);
     void deleteBudgetByIdAndUserId(Long id, String userId);
     Boolean existsByYearMonthCategory(BudgetDTO budget);
 

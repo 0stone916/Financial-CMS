@@ -1,6 +1,7 @@
 package com.jys.smartbudget.mapper;
 
 import com.jys.smartbudget.dto.ExpenseDTO;
+import com.jys.smartbudget.dto.NotiRequestDto;
 import com.jys.smartbudget.dto.SearchRequest;
 import com.jys.smartbudget.dto.StatisticsDTO;
 
@@ -11,11 +12,11 @@ import java.util.List;
 @Mapper
 public interface ExpenseMapper {
 
-    List<ExpenseDTO> searchExpenses(SearchRequest searchRequest); 
+    List<ExpenseDTO> getExpenses(SearchRequest searchRequest); 
 
     List<StatisticsDTO> getExpenseStatistics(SearchRequest searchRequest);  
 
-    void insertExpense(ExpenseDTO expense);
+    void insertExpense(NotiRequestDto expense);
 
     int updateExpense(ExpenseDTO expense);
 

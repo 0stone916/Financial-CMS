@@ -63,7 +63,12 @@ api.interceptors.response.use(
           { refreshToken }
         );
 
-        const newAccessToken = refreshRes.data.accessToken;
+        console.log("리프레시 응답 전체:", refreshRes.data); 
+    const newAccessToken = refreshRes.data.accessToken || refreshRes.data.data?.accessToken;
+
+    if (!newAccessToken) {
+      throw new Error("새 토큰을 가져오지 못했습니다.");
+    }
 
         // 저장
         sessionStorage.setItem("accessToken", newAccessToken);

@@ -51,18 +51,14 @@
         ORDER BY b.month DESC
     </select>
 
-    <update id="updateBudget">
-        UPDATE budget
-        SET category_code = #{category.code},
-            amount = #{amount},
-            year = #{year},
-            month = #{month},
-            description = #{description},
-            version = version + 1
-        WHERE id = #{id}
-          AND user_id = #{userId}
-          AND version = #{version}
+    <update id="updateBudget" parameterType="map">
+        UPDATE budget 
+            SET remained_budget = remained_budget - #{amount}
+            WHERE account_number = #{accountNumber}
+            AND user_id = #{userId}
+            AND remained_budget >= #{amount}
     </update>
+    
 
     <delete id="deleteBudgetByIdAndUserId">
         DELETE FROM budget

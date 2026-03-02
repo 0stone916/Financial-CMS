@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling
+// @EnableScheduling
 @MapperScan("com.jys.smartbudget.mapper")
 public class SmartBudgetApplication {
 

@@ -6,7 +6,7 @@ import com.jys.smartbudget.dto.ApiResponse;
 import com.jys.smartbudget.dto.UserDTO;
 import com.jys.smartbudget.exception.BusinessException;
 import com.jys.smartbudget.exception.ErrorCode;
-import com.jys.smartbudget.service.RedisTokenService;
+import com.jys.smartbudget.service.RedisService;
 import com.jys.smartbudget.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import com.jys.smartbudget.config.JwtUtil;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
-    private final RedisTokenService redisTokenService;
+    private final RedisService redisTokenService;
     private final JwtUtil jwtUtil;
 
     /**

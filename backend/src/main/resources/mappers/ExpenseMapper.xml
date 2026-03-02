@@ -4,45 +4,20 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.jys.smartbudget.mapper.ExpenseMapper">
-    <resultMap id="expenseMap" type="com.jys.smartbudget.dto.ExpenseDTO">
-        <id property="id" column="id"/>
-        <result property="budgetId" column="budget_id"/>
-        <result property="amount" column="amount"/>
-        <result property="year" column="year"/>
-        <result property="month" column="month"/>
-        <result property="day" column="day"/>
-        <result property="description" column="description"/>
-        <result property="userId" column="user_id"/>
-        <result property="version" column="version"/>
 
-        <association property="category" javaType="com.jys.smartbudget.dto.CategoryDTO">
-            <id property="code" column="code"/>
-            <result property="code" column="code"/>
-            <result property="name" column="name"/>
-        </association>
-    </resultMap>
-
-    <select id="searchExpenses" resultMap="expenseMap">
-        SELECT 
-            e.id, b.id AS budget_id, e.user_id, e.amount, e.day, 
-            e.description, e.version, c.name, c.code
-        FROM (
-            /* 1. 여기서 인덱스를 타고 10개만 먼저 뽑습니다 (빛의 속도) */
-            SELECT *
-            FROM expense
-            WHERE user_id = #{userId}
-            AND year = #{year}
-            AND month = #{month}
-            <if test="lastDay != null and lastId != null">
-                AND (day <![CDATA[<]]> #{lastDay} 
-                    OR (day = #{lastDay} AND id <![CDATA[<]]> #{lastId}))
-            </if>
-            ORDER BY day DESC, id DESC
-            LIMIT #{size}
-        ) e
-        /* 2. 딱 10개에 대해서만 조인을 수행합니다 (부하 거의 없음) */
-        LEFT JOIN budget b ON b.id = e.budget_id
-        LEFT JOIN category c ON c.code = b.category_code
+    <select id="getExpenses" resultType="com.jys.smartbudget.dto.ExpenseDTO">
+        SELECT *
+        FROM expense
+        WHERE user_id = #{userId}
+        AND account_number = #{accountNumber}
+        AND year = #{year}
+        AND month = #{month}
+        <if test="lastDay != null and lastId != null">
+            AND (day <![CDATA[<]]> #{lastDay} 
+                OR (day = #{lastDay} AND id <![CDATA[<]]> #{lastId}))
+        </if>
+        ORDER BY day DESC, id DESC
+        LIMIT #{size}
     </select>
 
     <select id="getExpenseStatistics" resultType="com.jys.smartbudget.dto.StatisticsDTO">
@@ -58,8 +33,12 @@
 
     <!-- 지출 등록 -->
     <insert id="insertExpense" parameterType="com.jys.smartbudget.dto.ExpenseDTO">
-        INSERT INTO expense (budget_id, amount, year, month, day, description, user_id)
-        VALUES (#{budgetId}, #{amount}, #{year}, #{month}, #{day}, #{description}, #{userId})
+        INSERT INTO expense (
+            user_id, account_number, amount, merchant_name, approval_no, year, month, day, transacted_at
+        ) VALUES (
+            #{userId}, #{accountNumber}, #{amount}, #{merchantName}, #{approvalNo}, #{year}, #{month},
+            #{day}, #{transactedAt}
+            )
     </insert>
 
     <!-- 지출 수정 -->
