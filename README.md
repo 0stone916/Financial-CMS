@@ -59,6 +59,7 @@
 
 ## 📘 상세 설계 문서
 - Financial CMS 노션 상세 페이지: [바로가기](https://www.notion.so/2cc2c24577cc80638969fa8cf6d240d5)
+- bank 깃: [바로가기](https://github.com/0stone916/bank)
 
 ## 📋 Product Overview
 <img width="861" height="907" alt="스크린샷 2026-03-03 000038" src="https://github.com/user-attachments/assets/0fc5ad57-f010-444d-ae46-7f27da3695e6" />
