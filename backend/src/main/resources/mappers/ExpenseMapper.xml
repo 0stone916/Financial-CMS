@@ -20,17 +20,6 @@
         LIMIT #{size}
     </select>
 
-    <select id="getExpenseStatistics" resultType="com.jys.smartbudget.dto.StatisticsDTO">
-        SELECT b.category_code as code, e_sum.total_amount as totalAmount
-        FROM (
-            SELECT budget_id, SUM(amount) as total_amount
-            FROM expense
-            WHERE user_id = #{userId} AND year = #{year} AND month = #{month}
-            GROUP BY budget_id
-        ) e_sum
-        JOIN budget b ON b.id = e_sum.budget_id;
-    </select>
-
     <!-- 지출 등록 -->
     <insert id="insertExpense" parameterType="com.jys.smartbudget.dto.ExpenseDTO">
         INSERT INTO expense (
@@ -41,60 +30,47 @@
             )
     </insert>
 
-    <!-- 지출 수정 -->
-    <update id="updateExpense" parameterType="com.jys.smartbudget.dto.ExpenseDTO">
-        UPDATE expense
-        SET amount = #{amount},
-            description = #{description},
-            year = #{year},
-            month = #{month},
-            day = #{day},
-            version = version + 1
-        WHERE id = #{id}
-          AND user_id = #{userId}
-          AND version = #{version}
-    </update>
-
-    <!-- 지출 삭제 (PK + userId 체크) -->
-    <delete id="deleteExpenseByIdAndUserId">
-        DELETE FROM expense
-        WHERE id = #{id} AND user_id = #{userId}
-    </delete>
-
-    <delete id="deleteExpensesByUserId">
-        DELETE FROM expense
-        WHERE user_id = #{userId}
-    </delete>
-
-    <select id="checkOverBudget" resultType="boolean" parameterType="com.jys.smartbudget.dto.ExpenseDTO">
+        <select id="findByApprovalNo" parameterType="string" resultType="com.jys.smartbudget.dto.ExpenseDTO">
         SELECT 
-            CASE 
-                WHEN (
-                    (SELECT COALESCE(SUM(amount), 0) 
-                    FROM expense 
-                    WHERE budget_id = #{budgetId} 
-                    AND year = #{year} 
-                    AND month = #{month})
-                    + #{amount}
-                ) > (SELECT amount FROM budget WHERE id = #{budgetId})
-                THEN 1
-                ELSE 0
-            END AS overBudget
-    </select>
-
-    <select id='findLatestExpense'>
-        SELECT year, month
+            id,
+            user_id,
+            account_number,
+            amount,
+            merchant_name,
+            approval_no,
+            year,
+            month,
+            day,
+            status,
+            transacted_at
         FROM expense
-        WHERE user_id = #{userId}
-        ORDER BY year DESC, month DESC
-        LIMIT 1
+        WHERE approval_no = #{approvalNo}
     </select>
 
-    <select id="hasExpensesByBudgetId" resultType="int">
-        SELECT COUNT(*)
+    <select id="findExpensesByDate" parameterType="java.time.LocalDate" resultType="com.jys.smartbudget.dto.ExpenseDTO">
+        SELECT 
+            id,
+            user_id,
+            account_number,
+            amount,
+            merchant_name,
+            approval_no,
+            year,
+            month,
+            day,
+            status,
+            transacted_at
         FROM expense
-        WHERE budget_id = #{budgetId}
+        WHERE year = YEAR(#{yesterday})
+          AND month = MONTH(#{yesterday})
+          AND day = DAY(#{yesterday})
     </select>
 
+
+    <update id="updateStatusVerified" parameterType="string">
+        UPDATE expense
+        SET status = 'VERIFIED'
+        WHERE UPPER(TRIM(approval_no)) = UPPER(TRIM(#{approvalNo}))
+    </update>
 
 </mapper>

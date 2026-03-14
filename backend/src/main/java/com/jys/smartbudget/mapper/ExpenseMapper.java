@@ -3,30 +3,27 @@ package com.jys.smartbudget.mapper;
 import com.jys.smartbudget.dto.ExpenseDTO;
 import com.jys.smartbudget.dto.NotiRequestDto;
 import com.jys.smartbudget.dto.SearchRequest;
-import com.jys.smartbudget.dto.StatisticsDTO;
-
 import io.lettuce.core.dynamic.annotation.Param;
 import org.apache.ibatis.annotations.Mapper;
+import java.time.LocalDate;
 import java.util.List;
 
 @Mapper
 public interface ExpenseMapper {
 
+    // 지출내역 조회
     List<ExpenseDTO> getExpenses(SearchRequest searchRequest); 
 
-    List<StatisticsDTO> getExpenseStatistics(SearchRequest searchRequest);  
-
+    // bank에서 알림받은 지출정보 저장
     void insertExpense(NotiRequestDto expense);
 
-    int updateExpense(ExpenseDTO expense);
+    // approval_no로 CMS 데이터 조회 (검증 배치Processor에서 사용)
+    ExpenseDTO findByApprovalNo(String approvalNo);
 
-    void deleteExpenseByIdAndUserId(Long id, String userId);
+    // 검증 배치 시 어제 내역 조회
+    List<ExpenseDTO> findExpensesByDate(LocalDate yesterday);
+    
+    // 검증배치 시 완료 상태 업데이트 (Writer에서 사용)
+    void updateStatusVerified(String approvalNo);
 
-    Boolean checkOverBudget(ExpenseDTO expense);
-
-    ExpenseDTO findLatestExpense(String userId);
-
-    int hasExpensesByBudgetId(@Param("budgetId") Long budgetId);
-
-    void deleteExpensesByUserId(@Param("userId") String userId);
 }

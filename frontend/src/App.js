@@ -171,7 +171,7 @@ export default function App() {
       <Toaster />
       
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
-        <h1 style={{ margin: 0, color: "#1a1a1a", letterSpacing: "-1px" }}>SmartBudget <span style={{ color: "#0046ff", fontSize: "0.5em" }}>v2.0</span></h1>
+        <h1 style={{ margin: 0, color: "#1a1a1a", letterSpacing: "-1px" }}>Financial CMS<span style={{ color: "#0046ff", fontSize: "0.5em" }}>v2.0</span></h1>
         <button style={{ ...buttonStyle, backgroundColor: "#ffeded", color: "#ff4d4d" }} onClick={handleLogout}>로그아웃</button>
       </div>
 
